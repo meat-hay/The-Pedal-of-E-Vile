@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+   PEDAL OF E-VILE
+</body>
+</html>
+<style>
+    body{background-color: purple;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size: xx-large;}
+</style>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Distortion Effect</title>
+  </head>
+  <body>
+    <h1>Meant for guitars but go crazy!!!</h1>
+    <input type="file" id="videoUpload" accept="video/*" />
+    <br><br>
+    <video id="videoPlayer" controls style="max-width: 100%;"></video>
+    <script>
+      const videoUpload = document.getElementById("videoUpload");
+      const videoPlayer = document.getElementById("videoPlayer");
+  
+      videoUpload.addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+  
+        const videoURL = URL.createObjectURL(file);
+        videoPlayer.src = videoURL;
+  
+        // Create an AudioContext
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  
+        // Extract the audio track from the video
+        const videoElement = videoPlayer;
+        const mediaElementSource = audioContext.createMediaElementSource(videoElement);
+  
+        // Create a distortion node
+        const distortion = audioContext.createWaveShaper();
+        const gainNode = audioContext.createGain();
+        
+        // Set the distortion curve
+        const createDistortionCurve = (amount) => {
+          const n_samples = 44100;
+          const curve = new Float32Array(n_samples);
+          const deg = Math.PI / 180;
+          for (let i = 0; i < n_samples; ++i) {
+            const x = (i * 2) / n_samples - 1;
+            curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+          }
+          return curve;
+        };
+  
+        distortion.curve = createDistortionCurve(400);
+        distortion.oversample = "4x";
+  
+        // Set up gain (volume) adjustment
+        gainNode.gain.value = 1; // Adjust this for desired output volume
+  
+        // Connect the nodes
+        mediaElementSource.connect(distortion);
+        distortion.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+  
+        videoPlayer.addEventListener("play", () => {
+          audioContext.resume();
+        });
+      });
+    </script>
+  </body>
+  </html>
